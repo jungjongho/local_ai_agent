@@ -32,7 +32,7 @@ pydantic-settings==2.1.0
 
 # Security and Environment
 python-dotenv==1.0.0
-cryptography==41.0.8
+cryptography
 
 # Logging and Monitoring
 structlog==23.2.0
