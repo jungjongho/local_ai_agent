@@ -140,6 +140,8 @@ class GPTClient:
         max_tokens: Optional[int] = None,
         stream: bool = False,
         use_cache: bool = True,
+        tools: Optional[List[Dict]] = None,
+        tool_choice: Optional[str] = None,
         **kwargs
     ) -> Union[Dict[str, Any], AsyncIterator]:
         """
@@ -169,7 +171,7 @@ class GPTClient:
         
         # Create cache key if caching is enabled
         cache_key = None
-        if use_cache and not stream:
+        if use_cache and not stream and not tools:  # Don't cache tool calls
             cache_params = {
                 "model": model,
                 "temperature": temperature,
@@ -193,6 +195,12 @@ class GPTClient:
             "stream": stream,
             **kwargs
         }
+        
+        # Add tools if provided
+        if tools:
+            request_params["tools"] = tools
+        if tool_choice:
+            request_params["tool_choice"] = tool_choice
         
         logger.info(f"Making chat completion request with {len(messages)} messages")
         

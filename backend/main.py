@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from config.settings import settings
-from api import chat, system
+from api import chat, system, agent, permissions
 from core.error_handler import APIError, create_error_response
 from utils.logger import logger
 
@@ -102,6 +102,8 @@ async def general_exception_handler(request: Request, exc: Exception):
 # Include API routers
 app.include_router(chat.router)
 app.include_router(system.router)
+app.include_router(agent.router)
+app.include_router(permissions.router)
 
 
 # Root endpoint
@@ -116,7 +118,9 @@ async def root():
         "redoc": "/redoc",
         "endpoints": {
             "chat": "/api/chat",
-            "system": "/api/system"
+            "system": "/api/system",
+            "agent": "/api/agent",
+            "permissions": "/api/permissions"
         }
     }
 

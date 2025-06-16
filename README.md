@@ -8,9 +8,9 @@ Local AI Agent는 OpenAI GPT API를 활용한 확장 가능한 AI 에이전트 �
 
 ### 🎯 주요 특징
 
-- **Phase 1** (현재): GPT API 연동, 캐싱, 기본 채팅 기능
-- **Phase 2** (예정): LangChain 기반 에이전트 시스템
-- **Phase 3** (예정): 로컬 시스템 통합
+- **Phase 1** (완료): GPT API 연동, 캐싱, 기본 채팅 기능
+- **Phase 2** (완료): File System Tool, Agent 서비스, Function Calling
+- **Phase 3** (예정): 시스템 통합 및 추가 도구
 - **Phase 4** (예정): 고급 최적화 및 오프라인 기능
 
 ## 🚀 빠른 시작
@@ -69,6 +69,40 @@ local_ai_agent/
 └── requirements.txt        # Python 의존성
 ```
 
+## 🔧 Phase 2 구현 기능
+
+### ✅ Web Search Tool
+- DuckDuckGo API 웹 검색
+- 웹 페이지 내용 추출 및 파싱
+- URL 유효성 검증
+- RSS/Atom 피드 파싱
+- 뉴스 및 이미지 검색 지원
+- 검색 캐싱 및 최적화
+- 보안 도메인 필터링
+
+### ✅ File System Tool
+- 파일 읽기/쓰기 작업
+- 디렉토리 생성 및 조회
+- 파일 복사/이동/삭제
+- 파일 검색 및 정보 조회
+- 파일 모니터링 (watchdog)
+- 백업/복원 기능
+- 해시 계산 및 권한 관리
+
+### ✅ Agent 서비스
+- Function Calling 지원
+- 도구 실행 관리
+- 세션 및 컨텍스트 관리
+- 도구 체이닝
+- 통계 및 모니터링
+
+### ✅ 보안 기능
+- 안전 모드 (safe_mode)
+- 허용 경로 제한
+- 파일 확장자 검증
+- 파일 크기 제한
+- 디렉토리 탐색 공격 방지
+
 ## 🔧 Phase 1 구현 기능
 
 ### ✅ GPT API 연동
@@ -94,6 +128,11 @@ local_ai_agent/
 - `/api/chat/conversation` - 대화 관리
 - `/api/system/health` - 시스템 상태
 - `/api/system/cache/clear` - 캐시 관리
+- `/api/agent/tools` - 도구 목록 조회
+- `/api/agent/execute` - 도구 실행
+- `/api/agent/chat` - AI 에이전트 대화 (도구 사용 가능)
+- `/api/agent/file` - 파일 작업 단순화 인터페이스
+- `/api/agent/search` - 웹 검색 단순화 인터페이스
 
 ## 🎛️ 설정 옵션
 
@@ -114,17 +153,12 @@ local_ai_agent/
 
 ## 🔮 향후 개발 계획
 
-### Phase 2: 에이전트 시스템
-- LangChain 통합
-- Function Calling 도구
-- 메모리 관리
-- 에이전트 체인
-
-### Phase 3: 시스템 통합
-- 파일 시스템 제어
-- 로컬 애플리케이션 연동
-- 작업 스케줄링
-- 데이터베이스 연동
+### Phase 3: 시스템 통합 및 추가 도구
+- Calculator Tool - 수학 계산 도구 ✅
+- Web Search Tool - 웹 검색 도구 ✅
+- System Command Tool - 시스템 명령 실행
+- Database Tool - 데이터베이스 연동
+- Scheduler Tool - 작업 스케줄링
 
 ### Phase 4: 고급 기능
 - 스마트 캐싱

@@ -1,0 +1,12 @@
+Hello World!
+This is a test file for the File System Tool.
+
+Features to test:
+- File reading
+- File writing
+- Directory listing
+- File information
+- File search
+- File operations (copy, move, delete)
+
+This file demonstrates the capabilities of our AI Agent's file system integration.

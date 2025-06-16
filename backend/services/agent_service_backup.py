@@ -1,13 +1,12 @@
 """
-개선된 Agent service - 실용적이면서 안전한 파일 시스템 접근
+Agent service for managing AI agents and tools.
+Provides the foundation for Phase 2 agent functionality.
 """
 import asyncio
 import json
 import uuid
 from typing import Any, Dict, List, Optional, Union
 from datetime import datetime
-from pathlib import Path
-import os
 
 from tools import FileSystemTool, WebSearchTool, BaseTool, ToolResult
 from tools.base_tool import ToolConfig
@@ -41,15 +40,12 @@ class AgentSession:
         self.successful_executions = 0
 
 
-class ImprovedAgentService:
+class AgentService:
     """
-    개선된 Agent service - 더 실용적인 파일 시스템 접근을 제공합니다.
+    Agent service that manages AI agents and their tools.
     
-    주요 개선사항:
-    1. 프로젝트 루트 디렉토리 접근 허용
-    2. 사용자 홈 디렉토리 내 안전한 접근
-    3. 화이트리스트 기반 보안 정책
-    4. 명확한 에러 메시지와 로깅
+    This service provides the foundation for Phase 2 functionality,
+    allowing agents to use various tools to interact with the system.
     """
     
     def __init__(self):
@@ -57,154 +53,54 @@ class ImprovedAgentService:
         self.tools: Dict[str, BaseTool] = {}
         self.active_sessions: Dict[str, AgentSession] = {}
         
-        # 프로젝트 루트 경로 계산
-        self.project_root = Path(__file__).parent.parent.parent.resolve()
+        # Initialize default tools
+        self._initialize_tools()
         
-        # Initialize improved tools
-        self._initialize_improved_tools()
-        
-        logger.info(f"ImprovedAgentService initialized with project root: {self.project_root}")
+        logger.info("AgentService initialized")
     
-    def _get_safe_allowed_paths(self) -> List[str]:
-        """
-        안전하면서도 실용적인 허용 경로 리스트를 생성합니다.
-        
-        설계 원칙:
-        1. 프로젝트 디렉토리 전체 접근 허용 (개발 편의성)
-        2. 사용자 Desktop, Documents 하위 작업 디렉토리 허용
-        3. 시스템 중요 디렉토리는 차단
-        4. 환경에 따른 동적 경로 설정
-        """
-        allowed_paths = []
-        
-        # 1. 프로젝트 루트 디렉토리 (가장 중요)
-        allowed_paths.append(str(self.project_root))
-        
-        # 2. 사용자 홈 디렉토리의 안전한 영역들
-        home_dir = Path.home()
-        safe_home_paths = [
-            home_dir / "Desktop",
-            home_dir / "Documents", 
-            home_dir / "Downloads",
-            home_dir / "workspace",
-            home_dir / "projects"
-        ]
-        
-        for path in safe_home_paths:
-            if path.exists():
-                allowed_paths.append(str(path))
-        
-        # 3. 프로젝트별 작업 디렉토리들
-        project_work_dirs = [
-            self.project_root / "data",
-            self.project_root / "workspace", 
-            self.project_root / "temp",
-            self.project_root / "outputs"
-        ]
-        
-        for work_dir in project_work_dirs:
-            work_dir.mkdir(parents=True, exist_ok=True)
-            allowed_paths.append(str(work_dir))
-        
-        # 4. 개발환경에서 추가 허용 경로 (선택적)
-        if os.getenv("DEVELOPMENT_MODE", "false").lower() == "true":
-            # 개발 모드에서는 더 넓은 접근 허용
-            current_working_dir = Path.cwd()
-            allowed_paths.append(str(current_working_dir))
-        
-        logger.info(f"Configured {len(allowed_paths)} allowed paths for file operations")
-        return allowed_paths
-    
-    def _get_blocked_patterns(self) -> List[str]:
-        """
-        보안을 위한 차단 패턴 정의.
-        """
-        return [
-            "/System/",
-            "/usr/bin/", 
-            "/bin/",
-            "/sbin/",
-            "/etc/passwd",
-            "/etc/shadow",
-            "/.ssh/",
-            "/root/",
-            "C:\\Windows\\System32",
-            "C:\\Program Files",
-            "__pycache__",
-            ".git/objects",
-            "node_modules"
-        ]
-    
-    def _initialize_improved_tools(self):
-        """Initialize tools with improved, practical configurations."""
+    def _initialize_tools(self):
+        """Initialize available tools."""
         try:
-            # 개선된 파일 시스템 도구 설정
+            # Initialize file system tool with safe configuration
             fs_config = FileSystemConfig(
                 safe_mode=True,
-                allowed_paths=self._get_safe_allowed_paths(),
-                blocked_patterns=self._get_blocked_patterns(),
-                max_file_size=50 * 1024 * 1024,  # 50MB limit (개발 작업에 충분)
-                enable_backup=True,
-                backup_directory=str(self.project_root / "data" / "backups"),
-                # 텍스트 파일과 개발 파일들에 대한 확장된 허용 목록
-                allowed_extensions=[
-                    '.txt', '.md', '.json', '.csv', '.xml', '.yml', '.yaml',
-                    '.py', '.js', '.html', '.css', '.sql', '.log', '.ini',
-                    '.conf', '.cfg', '.env', '.gitignore', '.dockerfile',
-                    '.sh', '.bat', '.ps1'  # 스크립트 파일들도 허용
-                ],
-                blocked_extensions=[
-                    '.exe', '.dll', '.so', '.dylib', '.app', '.deb', '.rpm',
-                    '.msi', '.pkg', '.dmg', '.iso'  # 실행파일과 패키지들만 차단
-                ]
+                allowed_paths=["data/workspace", "data/temp"],  # Restricted paths
+                max_file_size=10 * 1024 * 1024,  # 10MB limit
+                enable_backup=True
             )
             
             self.tools["file_system"] = FileSystemTool(fs_config)
             
-            # 웹 검색 도구는 기존 설정 유지 (이미 안전함)
+            # Initialize web search tool with safe configuration
             web_config = WebSearchConfig(
                 safe_mode=True,
                 max_results=10,
                 timeout=30,
                 enable_caching=True,
                 blocked_domains=["malware.com", "phishing.com"],
-                max_content_length=50000
+                max_content_length=50000  # 50KB limit
             )
             
             self.tools["web_search"] = WebSearchTool(web_config)
             
-            logger.info(f"Successfully initialized {len(self.tools)} tools with improved configurations")
-            
-            # 설정 정보 로깅 (디버깅 목적)
-            for tool_name, tool in self.tools.items():
-                if hasattr(tool, 'fs_config'):
-                    logger.info(f"Tool '{tool_name}' allows {len(tool.fs_config.allowed_paths)} paths")
+            logger.info(f"Initialized {len(self.tools)} tools")
             
         except Exception as e:
-            logger.error(f"Failed to initialize improved tools: {e}")
+            logger.error(f"Failed to initialize tools: {e}")
             raise
     
     def get_available_tools(self) -> List[Dict[str, Any]]:
         """Get list of available tools with their specifications."""
-        tools_info = []
-        
-        for tool in self.tools.values():
-            tool_info = {
+        return [
+            {
                 "name": tool.name,
                 "description": tool.description,
                 "parameters_schema": tool.parameters_schema,
                 "enabled": tool.config.enabled,
                 "statistics": tool.get_statistics()
             }
-            
-            # 파일 시스템 도구의 경우 허용된 경로 정보 추가
-            if hasattr(tool, 'fs_config') and tool.fs_config.allowed_paths:
-                tool_info["allowed_paths_count"] = len(tool.fs_config.allowed_paths)
-                tool_info["sample_allowed_paths"] = tool.fs_config.allowed_paths[:3]  # 처음 3개만 보여줌
-            
-            tools_info.append(tool_info)
-        
-        return tools_info
+            for tool in self.tools.values()
+        ]
     
     def get_tool_function_specs(self) -> List[Dict[str, Any]]:
         """Get OpenAI function specifications for all tools."""
@@ -222,14 +118,19 @@ class ImprovedAgentService:
     ) -> ToolResult:
         """
         Execute a specific tool with given parameters.
-        개선된 에러 메시지와 더 나은 로깅을 제공합니다.
+        
+        Args:
+            tool_name: Name of the tool to execute
+            parameters: Tool parameters
+            session_id: Optional session ID for tracking
+            
+        Returns:
+            ToolResult with execution details
         """
         if tool_name not in self.tools:
-            error_msg = f"Tool not found: {tool_name}. Available tools: {list(self.tools.keys())}"
-            logger.error(error_msg)
             return ToolResult(
                 success=False,
-                error=error_msg,
+                error=f"Tool not found: {tool_name}",
                 execution_time=0.0
             )
         
@@ -237,11 +138,9 @@ class ImprovedAgentService:
         
         # Check if tool is allowed
         if tool_name not in self.config.allowed_tools:
-            error_msg = f"Tool not allowed: {tool_name}. Allowed tools: {self.config.allowed_tools}"
-            logger.error(error_msg)
             return ToolResult(
                 success=False,
-                error=error_msg,
+                error=f"Tool not allowed: {tool_name}",
                 execution_time=0.0
             )
         
@@ -254,27 +153,6 @@ class ImprovedAgentService:
             parameters=parameters
         )
         
-        # 파일 경로 관련 매개변수 로깅 (디버깅 도움)
-        if 'path' in parameters:
-            logger.info(f"Target path: {parameters['path']}")
-            
-            # 경로 접근 가능성 사전 검사
-            if hasattr(tool, 'fs_config'):
-                target_path = Path(parameters['path']).resolve()
-                allowed = False
-                for allowed_path in tool.fs_config.allowed_paths:
-                    try:
-                        if target_path.is_relative_to(Path(allowed_path).resolve()):
-                            allowed = True
-                            logger.info(f"Path access granted via allowed path: {allowed_path}")
-                            break
-                    except (ValueError, OSError):
-                        continue
-                
-                if not allowed:
-                    logger.warning(f"Path access may be denied: {target_path}")
-                    logger.info(f"Allowed paths: {tool.fs_config.allowed_paths}")
-        
         try:
             # Execute tool
             result = await tool.execute(**parameters)
@@ -283,9 +161,6 @@ class ImprovedAgentService:
             session.total_tool_executions += 1
             if result.success:
                 session.successful_executions += 1
-                logger.info(f"Tool execution successful: {tool_name}")
-            else:
-                logger.warning(f"Tool execution failed: {tool_name}, Error: {result.error}")
             
             session.last_activity = datetime.now()
             session.tool_calls.append({
@@ -298,11 +173,10 @@ class ImprovedAgentService:
             return result
             
         except Exception as e:
-            error_msg = f"Tool execution error for {tool_name}: {str(e)}"
-            logger.error(error_msg, exc_info=True)
+            logger.error(f"Tool execution failed: {e}")
             return ToolResult(
                 success=False,
-                error=error_msg,
+                error=f"Tool execution error: {str(e)}",
                 execution_time=0.0
             )
     
@@ -314,7 +188,14 @@ class ImprovedAgentService:
     ) -> Dict[str, Any]:
         """
         Enhanced chat that can use tools when needed.
-        파일 작업을 더 적극적으로 수행하도록 시스템 메시지 개선.
+        
+        Args:
+            messages: Chat messages
+            session_id: Session identifier
+            max_iterations: Maximum tool calling iterations
+            
+        Returns:
+            Enhanced chat response with tool usage
         """
         session = self._get_or_create_session(session_id)
         
@@ -327,35 +208,29 @@ class ImprovedAgentService:
         # Get available functions
         functions = self.get_tool_function_specs()
         
-        # 개선된 시스템 메시지 - 더 적극적인 도구 사용 권장
+        # Add system message to encourage tool usage
         if functions and len(functions) > 0:
+            # Check if there's already a system message
             has_system_message = any(msg.get("role") == "system" for msg in message_dicts)
             
             if not has_system_message:
+                # Add system message to encourage tool usage
                 tool_descriptions = []
                 for tool in functions:
                     tool_descriptions.append(f"- {tool['name']}: {tool['description']}")
                 
                 system_message = {
                     "role": "system",
-                    "content": f"""You are a helpful AI assistant with active file system and web search capabilities.
+                    "content": f"""You are a helpful AI assistant with access to the following tools:
 
-Available tools:
 {chr(10).join(tool_descriptions)}
 
-**Important guidelines:**
-1. **BE PROACTIVE**: When users ask you to create, read, or modify files, USE the file_system tool immediately
-2. **HELP USERS DIRECTLY**: Don't just explain how they could do something - do it for them using tools
-3. **PRACTICAL APPROACH**: If a user asks you to write content to a file, use the file_system tool to actually create/write the file
-4. **ACCESSIBILITY**: You can access files in the project directory and user's common work areas (Desktop, Documents, etc.)
+When a user asks you to perform tasks that can be accomplished with these tools, you should use them actively. For example:
+- If asked to create, read, or modify files, use the file_system tool
+- If asked to search for information online, use the web_search tool
+- Always try to help the user by using the appropriate tools rather than just explaining how they could do it themselves.
 
-Examples of when to use tools:
-- "Create a file with content X" → Use file_system tool to write the file
-- "Read file Y" → Use file_system tool to read and return content  
-- "Search for information about Z" → Use web_search tool to find current information
-- "Save this data to a file" → Use file_system tool to write the data
-
-Always try to complete the user's task using available tools rather than just providing instructions."""
+Be proactive in using tools to complete tasks for the user."""
                 }
                 
                 message_dicts.insert(0, system_message)
@@ -424,10 +299,10 @@ Always try to complete the user's task using available tools rather than just pr
                         
                         iteration += 1
                         
-                        # If tool failed, provide helpful error context
+                        # If tool failed, break the loop
                         if not tool_result.success:
                             logger.warning(f"Tool execution failed: {tool_result.error}")
-                            # Continue rather than break - let AI handle the error
+                            break
                 
                 else:
                     # AI provided a regular response, we're done
@@ -441,7 +316,7 @@ Always try to complete the user's task using available tools rather than just pr
                     }
                     
                     logger.info(
-                        f"Agent chat completed successfully",
+                        f"Agent chat completed",
                         session_id=session.session_id,
                         iterations=iteration,
                         tools_used=len(tool_calls_made)
@@ -450,12 +325,12 @@ Always try to complete the user's task using available tools rather than just pr
                     return final_response
                 
             except Exception as e:
-                logger.error(f"Error in agent chat iteration {iteration}: {e}", exc_info=True)
+                logger.error(f"Error in agent chat iteration {iteration}: {e}")
                 break
         
         # If we reach here, we hit max iterations or an error
         return {
-            "response": "I've completed the available tool interactions. Some operations may have reached the iteration limit.",
+            "response": "I encountered an issue while processing your request with tools.",
             "tool_calls": tool_calls_made,
             "iterations": iteration,
             "session_id": session.session_id,
@@ -471,15 +346,20 @@ Always try to complete the user's task using available tools rather than just pr
     ) -> ToolResult:
         """
         Simplified interface for common file operations.
-        더 나은 에러 메시지와 로깅을 제공합니다.
+        
+        Args:
+            operation: File operation (read, write, list, etc.)
+            path: File path
+            **kwargs: Additional parameters
+            
+        Returns:
+            ToolResult
         """
         parameters = {
             "operation": operation,
             "path": path,
             **kwargs
         }
-        
-        logger.info(f"Simple file operation requested: {operation} on {path}")
         
         return await self.execute_tool("file_system", parameters)
     
@@ -490,7 +370,6 @@ Always try to complete the user's task using available tools rather than just pr
         
         if session_id not in self.active_sessions:
             self.active_sessions[session_id] = AgentSession(session_id)
-            logger.info(f"Created new session: {session_id}")
         
         return self.active_sessions[session_id]
     
@@ -559,18 +438,17 @@ Always try to complete the user's task using available tools rather than just pr
             },
             "service_stats": {
                 "tools_available": len(self.tools),
-                "tools_enabled": len([t for t in self.tools.values() if t.config.enabled]),
-                "project_root": str(self.project_root)
+                "tools_enabled": len([t for t in self.tools.values() if t.config.enabled])
             }
         }
     
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check on agent service."""
         try:
-            # Test file system tool with project directory
+            # Test file system tool
             fs_test_result = await self.simple_file_operation(
                 operation="info",
-                path=str(self.project_root)
+                path="."
             )
             
             # Test web search tool
@@ -586,7 +464,6 @@ Always try to complete the user's task using available tools rather than just pr
                 "tools_available": len(self.tools),
                 "tools_enabled": len([t for t in self.tools.values() if t.config.enabled]),
                 "active_sessions": len(self.active_sessions),
-                "project_root": str(self.project_root),
                 "test_results": {
                     "file_system": fs_test_result.success,
                     "web_search": web_test_result.success
@@ -601,5 +478,5 @@ Always try to complete the user's task using available tools rather than just pr
             }
 
 
-# Global agent service instance - using improved version
-agent_service = ImprovedAgentService()
+# Global agent service instance
+agent_service = AgentService()

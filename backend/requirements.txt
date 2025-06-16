@@ -24,6 +24,11 @@ pyyaml==6.0.1
 psutil==5.9.8
 watchdog==4.0.0
 schedule==1.2.1
+aiofiles==23.2.1
+
+# Web scraping and parsing
+beautifulsoup4==4.12.3
+feedparser==6.0.11
 
 # Logging and monitoring
 structlog==24.1.0
