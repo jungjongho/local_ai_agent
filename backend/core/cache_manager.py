@@ -13,8 +13,8 @@ from typing import Any, Dict, List, Optional, Union
 import diskcache
 from pydantic import BaseModel
 
-from backend.config.settings import settings
-from backend.utils.logger import logger
+from config.settings import settings
+from utils.logger import logger
 
 
 class CacheEntry(BaseModel):

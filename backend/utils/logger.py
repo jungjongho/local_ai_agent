@@ -9,7 +9,7 @@ from typing import Any, Dict
 import structlog
 from structlog.stdlib import LoggerFactory
 
-from backend.config.settings import settings
+from config.settings import settings
 
 
 def setup_logging():

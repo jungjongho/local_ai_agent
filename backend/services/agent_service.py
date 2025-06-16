@@ -3,7 +3,7 @@ Agent service for Phase 2 implementation.
 This module will handle LangChain-based agent functionality.
 """
 from typing import Dict, List, Any, Optional
-from backend.utils.logger import logger
+from utils.logger import logger
 
 
 class AgentService:

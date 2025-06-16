@@ -5,12 +5,12 @@ from typing import Dict, List
 from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import StreamingResponse
 
-from backend.models.chat_models import (
+from models.chat_models import (
     ChatRequest, ChatResponse, ConversationRequest, ConversationResponse,
     ChatMessage, MessageValidation
 )
-from backend.services.chat_service import chat_service
-from backend.utils.logger import logger
+from services.chat_service import chat_service
+from utils.logger import logger
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 

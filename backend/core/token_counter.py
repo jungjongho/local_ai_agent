@@ -6,7 +6,7 @@ import tiktoken
 from typing import Dict, List, Optional
 from functools import lru_cache
 
-from backend.config.settings import settings
+from config.settings import settings
 
 
 class TokenCounter:

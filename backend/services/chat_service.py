@@ -6,14 +6,14 @@ import uuid
 from datetime import datetime
 from typing import Dict, List, Optional, AsyncGenerator
 
-from backend.core.gpt_client import gpt_client
-from backend.core.error_handler import error_handler
-from backend.core.token_counter import token_counter
-from backend.models.chat_models import (
+from core.gpt_client import gpt_client
+from core.error_handler import error_handler
+from core.token_counter import token_counter
+from models.chat_models import (
     ChatMessage, ChatRequest, ChatResponse, ConversationRequest, 
     ConversationResponse, TokenInfo, MessageValidation
 )
-from backend.utils.logger import logger, log_performance
+from utils.logger import logger, log_performance
 
 
 class ChatService:
@@ -77,11 +77,11 @@ class ChatService:
             estimated_response_tokens=token_info_dict["estimated_response_tokens"],
             total_tokens=token_info_dict["total_tokens"],
             within_limit=within_limit,
-            model_limit=4096  # Default, should be dynamic based on model
+            token_limit=4096  # Default, should be dynamic based on model
         )
         
         if not within_limit:
-            errors.append(f"Token limit exceeded: {token_info.total_tokens} > {token_info.model_limit}")
+            errors.append(f"Token limit exceeded: {token_info.total_tokens} > {token_info.token_limit}")
         
         return MessageValidation(
             valid=len(errors) == 0,

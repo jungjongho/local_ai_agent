@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional
 from fastapi import HTTPException, status
 from pydantic import BaseModel
 
-from backend.utils.logger import logger
+from utils.logger import logger
 
 
 class ErrorResponse(BaseModel):

@@ -101,7 +101,7 @@ class TokenInfo(BaseModel):
     estimated_response_tokens: int = Field(..., description="Estimated tokens for response")
     total_tokens: int = Field(..., description="Total estimated tokens")
     within_limit: bool = Field(..., description="Whether request is within token limits")
-    model_limit: int = Field(..., description="Model's token limit")
+    token_limit: int = Field(..., description="Model's token limit")
 
 
 class MessageValidation(BaseModel):

@@ -1,13 +1,14 @@
 """
 System management API endpoints.
 """
+import time
 from typing import Dict, Any
 from fastapi import APIRouter, HTTPException, status
 
-from backend.core.gpt_client import gpt_client
-from backend.core.cache_manager import cache_manager
-from backend.config.settings import settings
-from backend.utils.logger import logger
+from core.gpt_client import gpt_client
+from core.cache_manager import cache_manager
+from config.settings import settings
+from utils.logger import logger
 
 router = APIRouter(prefix="/api/system", tags=["system"])
 
@@ -41,7 +42,7 @@ async def system_health() -> Dict[str, Any]:
         
         health_info = {
             "status": "healthy" if system_healthy else "unhealthy",
-            "timestamp": logger.time.time(),
+            "timestamp": time.time(),
             "components": {
                 "api": {
                     "status": api_health.get("status", "unknown"),
@@ -81,7 +82,7 @@ async def system_health() -> Dict[str, Any]:
             detail={
                 "status": "unhealthy",
                 "error": str(e),
-                "timestamp": logger.time.time()
+                "timestamp": time.time()
             }
         )
 

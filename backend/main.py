@@ -2,17 +2,16 @@
 Main FastAPI application with CORS, middleware, and route configuration.
 """
 import uvicorn
+import time
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
-from pathlib import Path
 
-from backend.config.settings import settings
-from backend.api import chat, system
-from backend.core.error_handler import APIError, create_error_response
-from backend.utils.logger import logger
+from config.settings import settings
+from api import chat, system
+from core.error_handler import APIError, create_error_response
+from utils.logger import logger
 
 
 @asynccontextmanager
@@ -51,7 +50,7 @@ app.add_middleware(
 @app.middleware("http")
 async def logging_middleware(request: Request, call_next):
     """Log all HTTP requests."""
-    start_time = logger.time.time()
+    start_time = time.time()
     
     # Log request
     logger.info(
@@ -65,7 +64,7 @@ async def logging_middleware(request: Request, call_next):
     response = await call_next(request)
     
     # Log response
-    duration = logger.time.time() - start_time
+    duration = time.time() - start_time
     logger.info(
         f"HTTP Response: {response.status_code}",
         status_code=response.status_code,
@@ -127,20 +126,9 @@ async def health_check():
     """Simple health check endpoint."""
     return {
         "status": "healthy",
-        "timestamp": logger.time.time(),
+        "timestamp": time.time(),
         "version": "1.0.0"
     }
-
-
-# Mount static files for frontend (if frontend directory exists)
-frontend_path = Path(__file__).parent.parent / "frontend"
-if frontend_path.exists():
-    app.mount("/static", StaticFiles(directory=str(frontend_path)), name="static")
-    
-    @app.get("/app")
-    async def serve_frontend():
-        """Serve the frontend application."""
-        return JSONResponse({"message": "Frontend will be served from /static"})
 
 
 if __name__ == "__main__":

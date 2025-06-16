@@ -4,7 +4,7 @@ This module will handle local system integration functionality.
 """
 import asyncio
 from typing import Dict, List, Any, Optional
-from backend.utils.logger import logger
+from utils.logger import logger
 
 
 class SystemService:

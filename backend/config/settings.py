@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     """Application settings with validation and type safety."""
     
     # OpenAI Configuration
-    openai_api_key: str = Field(..., description="OpenAI API key")
+    openai_api_key: str = Field(default="", description="OpenAI API key")
     openai_model: str = Field(default="gpt-3.5-turbo", description="OpenAI model to use")
     openai_max_tokens: int = Field(default=4000, ge=1, le=8000)
     openai_temperature: float = Field(default=0.7, ge=0.0, le=2.0)
@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     log_file: str = Field(default="data/logs/app.log")
     
     # Security
-    secret_key: str = Field(..., description="Secret key for security")
+    secret_key: str = Field(default="dev-secret-key-change-in-production", description="Secret key for security")
     
     # Redis Configuration (for future use)
     redis_host: str = Field(default="localhost")

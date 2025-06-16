@@ -3,7 +3,7 @@ GPT API client with retry logic, rate limiting, and error handling.
 """
 import asyncio
 import time
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, AsyncIterator
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
@@ -11,10 +11,10 @@ import aiohttp
 import openai
 from openai import AsyncOpenAI
 
-from backend.config.settings import settings
-from backend.core.cache_manager import cache_manager
-from backend.core.token_counter import token_counter
-from backend.utils.logger import logger
+from config.settings import settings
+from core.cache_manager import cache_manager
+from core.token_counter import token_counter
+from utils.logger import logger
 
 
 @dataclass
@@ -141,7 +141,7 @@ class GPTClient:
         stream: bool = False,
         use_cache: bool = True,
         **kwargs
-    ) -> Union[Dict[str, Any], AsyncIteration]:
+    ) -> Union[Dict[str, Any], AsyncIterator]:
         """
         Create a chat completion with caching and error handling.
         
