@@ -81,8 +81,14 @@ htmlcov/
 .tox/
 .nox/
 
-# Docker
+# Deleted files directory
+deleted_files/
+
+# Docker (removed from project)
 .dockerignore
+Dockerfile
+docker-compose.yml
+docker-compose.*.yml
 
 # Node.js (if using frontend build tools)
 node_modules/

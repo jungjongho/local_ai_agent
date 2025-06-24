@@ -3,10 +3,12 @@ Main FastAPI application with CORS, middleware, and route configuration.
 """
 import uvicorn
 import time
+from pathlib import Path
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from config.settings import settings
 from api import chat, system, agent, permissions
@@ -105,6 +107,14 @@ app.include_router(system.router)
 app.include_router(agent.router)
 app.include_router(permissions.router)
 
+# Mount static files
+frontend_path = Path(__file__).parent.parent / "frontend"
+if frontend_path.exists():
+    app.mount("/static", StaticFiles(directory=str(frontend_path)), name="static")
+    logger.info(f"Static files mounted from: {frontend_path}")
+else:
+    logger.warning(f"Frontend directory not found: {frontend_path}")
+
 
 # Root endpoint
 @app.get("/")
@@ -116,6 +126,7 @@ async def root():
         "status": "running",
         "docs": "/docs",
         "redoc": "/redoc",
+        "frontend": "/static/index.html",
         "endpoints": {
             "chat": "/api/chat",
             "system": "/api/system",

@@ -1,7 +1,7 @@
 // Configuration for the frontend application
 const CONFIG = {
     // API Base URL - 개발환경에 맞게 수정하세요
-    API_BASE_URL: 'http://localhost:8000',
+    API_BASE_URL: 'http://localhost:8025',
     
     // API Endpoints
     ENDPOINTS: {

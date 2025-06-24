@@ -18,7 +18,8 @@ Local AI Agent는 OpenAI GPT API를 활용한 확장 가능한 AI 에이전트 �
 ### 1. 환경 설정
 
 ```bash
-# 의존성 설치
+# 의존성 설치 (백엔드 디렉토리에서)
+cd backend
 pip install -r requirements.txt
 
 # 환경 변수 설정
@@ -28,7 +29,7 @@ cp .env.example .env
 
 ### 2. 환경 변수 설정
 
-`.env` 파일에서 다음 설정을 수정하세요:
+`backend/.env` 파일에서 다음 설정을 수정하세요:
 
 ```bash
 OPENAI_API_KEY=your_openai_api_key_here
@@ -44,12 +45,14 @@ cd backend
 python main.py
 
 # 또는 uvicorn 직접 실행
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn main:app --host 0.0.0.0 --port 8025 --reload
 ```
 
 ### 4. 프론트엔드 접속
 
-브라우저에서 `http://localhost:8000/static/index.html` 접속
+브라우저에서 `http://localhost:8025/static/index.html` 접속
+
+또는 루트 URL에서 API 정보 확인: `http://localhost:8025`
 
 ## 📁 프로젝트 구조
 
@@ -61,12 +64,12 @@ local_ai_agent/
 │   ├── services/           # 비즈니스 로직
 │   ├── api/                # API 엔드포인트
 │   ├── models/             # 데이터 모델
-│   └── utils/              # 유틸리티
-├── frontend/               # 웹 프론트엔드
-├── data/                   # 데이터 디렉토리
-│   ├── cache/              # 캐시 저장소
-│   └── logs/               # 로그 파일
-└── requirements.txt        # Python 의존성
+│   ├── utils/              # 유틸리티
+│   └── requirements.txt    # Python 의존성
+├── frontend/               # Vanilla HTML/CSS/JS 프론트엔드
+└── data/                   # 데이터 디렉토리
+    ├── cache/              # 캐시 저장소
+    └── logs/               # 로그 파일
 ```
 
 ## 🔧 Phase 2 구현 기능
@@ -117,10 +120,11 @@ local_ai_agent/
 - 캐시 통계 및 관리
 
 ### ✅ 웹 인터페이스
-- 실시간 채팅 UI
+- 실시간 채팅 UI (Vanilla JavaScript)
 - 스트리밍 응답 지원
 - 시스템 모니터링 대시보드
-- 설정 관리
+- 설정 관리 (Temperature, Max Tokens 등)
+- 토큰 카운팅 실시간 표시
 
 ### ✅ API 엔드포인트
 - `/api/chat/completion` - 채팅 완료
@@ -142,35 +146,36 @@ local_ai_agent/
 - `OPENAI_TEMPERATURE`: 창의성 수준
 
 ### 캐시 설정
-- `CACHE_TYPE`: 캐시 유형 (disk/redis)
+- `CACHE_TYPE`: 캐시 유형 (disk)
 - `CACHE_TTL`: 캐시 유지 시간
 - `CACHE_MAX_SIZE`: 최대 캐시 크기
 
 ### API 설정
 - `API_HOST`: 서버 호스트
-- `API_PORT`: 서버 포트
+- `API_PORT`: 서버 포트 (기본값: 8025)
 - `MAX_REQUESTS_PER_MINUTE`: 분당 최대 요청 수
 
 ## 🔮 향후 개발 계획
 
 ### Phase 3: 시스템 통합 및 추가 도구
-- Calculator Tool - 수학 계산 도구 ✅
+- File System Tool - 파일 시스템 도구 ✅
 - Web Search Tool - 웹 검색 도구 ✅
-- System Command Tool - 시스템 명령 실행
-- Database Tool - 데이터베이스 연동
-- Scheduler Tool - 작업 스케줄링
+- Calculator Tool - 수학 계산 도구 📋
+- System Command Tool - 시스템 명령 실행 📋
+- Database Tool - 데이터베이스 연동 📋
+- Scheduler Tool - 작업 스케줄링 📋
 
 ### Phase 4: 고급 기능
-- 스마트 캐싱
-- 요청 최적화
-- 오프라인 모드
-- 음성 인터페이스
+- 스마트 캐싱 (임베딩 기반 유사도 검색)
+- 요청 최적화 및 배칭
+- 오프라인 모드 (로컬 캐시 기반)
+- 음성 인터페이스 (Web Speech API)
 
 ## 🔍 API 문서
 
 서버 실행 후 다음 URL에서 API 문서 확인:
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+- Swagger UI: `http://localhost:8025/docs`
+- ReDoc: `http://localhost:8025/redoc`
 
 ## 🛠️ 개발 가이드
 
@@ -185,16 +190,12 @@ local_ai_agent/
 
 ### 캐시 전략 변경
 1. `backend/core/cache_manager.py` 수정
-2. Redis 사용시 docker-compose.yml 활용
 
 ## 🧪 테스트
 
 ```bash
-# 기본 테스트 (구현 예정)
-pytest tests/
-
 # API 테스트
-curl -X POST "http://localhost:8000/api/chat/completion" \
+curl -X POST "http://localhost:8025/api/chat/completion" \
   -H "Content-Type: application/json" \
   -d '{"messages": [{"role": "user", "content": "Hello"}]}'
 ```
@@ -208,22 +209,12 @@ tail -f data/logs/app.log
 
 ### 시스템 상태 확인
 ```bash
-curl http://localhost:8000/api/system/health
+curl http://localhost:8025/api/system/health
 ```
 
 ### 캐시 통계 확인
 ```bash
-curl http://localhost:8000/api/system/cache/stats
-```
-
-## 🐳 Docker 배포 (향후 지원)
-
-```bash
-# Docker 이미지 빌드
-docker build -t local-ai-agent .
-
-# 컨테이너 실행
-docker run -p 8000:8000 --env-file .env local-ai-agent
+curl http://localhost:8025/api/system/cache/stats
 ```
 
 ## 🤝 기여 가이드
@@ -242,7 +233,7 @@ MIT License - 자세한 내용은 LICENSE 파일 참조
 ### 일반적인 문제
 
 1. **OpenAI API 키 오류**
-   - `.env` 파일의 API 키 확인
+   - `backend/.env` 파일의 API 키 확인
    - API 키 권한 및 크레딧 확인
 
 2. **캐시 오류**
@@ -250,7 +241,7 @@ MIT License - 자세한 내용은 LICENSE 파일 참조
    - 디스크 공간 확인
 
 3. **포트 충돌**
-   - `.env`에서 `API_PORT` 변경
+   - `backend/.env`에서 `API_PORT` 변경
    - 다른 프로세스의 포트 사용 확인
 
 ### 로그 확인
