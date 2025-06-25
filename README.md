@@ -1,264 +1,459 @@
-# Local AI Agent
+# 🚀 멀티 AI 에이전트 웹서비스 생성 시스템
 
-🤖 GPT API 기반 로컬 AI 에이전트 시스템
+**사용자 입력 한 줄로 실제 로컬 파일 시스템에 완전한 웹서비스(React + FastAPI)를 자동 생성하는 멀티 AI 에이전트 시스템**
 
 ## 📋 프로젝트 개요
 
-Local AI Agent는 OpenAI GPT API를 활용한 확장 가능한 AI 에이전트 시스템입니다. Phase별 개발 계획에 따라 단계적으로 기능을 확장할 수 있도록 설계되었습니다.
+이 시스템은 5개의 전문 AI 에이전트가 협력하여 사용자의 간단한 요청을 완전한 웹 애플리케이션으로 자동 변환합니다:
 
-### 🎯 주요 특징
+- **PM Agent**: 프로젝트 관리 및 요구사항 분석
+- **UI/UX Agent**: 사용자 인터페이스 및 경험 설계
+- **Frontend Agent**: React + TypeScript 코드 생성
+- **Backend Agent**: FastAPI + Python 코드 생성  
+- **DevOps Agent**: Docker, 환경설정, 배포 스크립트 생성
 
-- **Phase 1** (완료): GPT API 연동, 캐싱, 기본 채팅 기능
-- **Phase 2** (완료): File System Tool, Agent 서비스, Function Calling
-- **Phase 3** (예정): 시스템 통합 및 추가 도구
-- **Phase 4** (예정): 고급 최적화 및 오프라인 기능
+## 🏗️ 시스템 아키텍처
+
+```
+User Input → Orchestrator → [PM → UI/UX → Frontend → Backend → DevOps] → MCP Tools → 실제 파일 생성
+```
+
+### 핵심 기술 스택
+
+**Backend**
+- FastAPI (웹 API 서버)
+- MCP (Model Context Protocol) - 실제 파일 시스템 접근
+- SQLite (워크플로 및 프로젝트 데이터)
+- OpenAI GPT-4 (AI 에이전트 엔진)
+
+**Frontend**
+- React + TypeScript (사용자 인터페이스)
+- TailwindCSS (스타일링)
+- Vite (빌드 도구)
+- WebSocket (실시간 통신)
+
+**DevOps**
+- Docker (컨테이너화)
+- Git (버전 관리)
+- 환경변수 관리
 
 ## 🚀 빠른 시작
 
-### 1. 환경 설정
+### 시스템 요구사항
 
+- **Python 3.8+** (권장: 3.11+)
+- **Node.js 16+** (권장: 18+)
+- **npm** 또는 **yarn**
+- **Git**
+- **Docker** (선택사항)
+
+### 💡 실행 방법
+
+#### 방법 1: 전체 시스템 자동 실행 (권장)
 ```bash
-# 의존성 설치 (백엔드 디렉토리에서)
+# 저장소 클론
+git clone <repository-url>
+cd local_ai_agent
+
+# 실행 권한 부여
+chmod +x start.sh stop.sh
+
+# 환경변수 설정
+cp backend/.env.example backend/.env
+# backend/.env 파일을 열어서 OPENAI_API_KEY를 설정하세요
+
+# 전체 시스템 시작 (자동으로 의존성 설치 및 서버 시작)
+./start.sh
+```
+
+#### 방법 2: 개별 서비스 실행 (개발용)
+
+**Backend 실행**
+```bash
 cd backend
+chmod +x dev.sh
+./dev.sh
+```
+
+**Frontend 실행** (새 터미널)
+```bash
+cd frontend  
+chmod +x dev.sh
+./dev.sh
+```
+
+#### 방법 3: 수동 실행 (문제 해결용)
+
+**Backend**
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
-
-# 환경 변수 설정
-cp .env.example .env
-# .env 파일에서 OpenAI API 키 설정
+cp .env.example .env  # 그리고 OPENAI_API_KEY 설정
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### 2. 환경 변수 설정
-
-`backend/.env` 파일에서 다음 설정을 수정하세요:
-
+**Frontend**
 ```bash
-OPENAI_API_KEY=your_openai_api_key_here
-OPENAI_MODEL=gpt-3.5-turbo
-SECRET_KEY=your_secret_key_here
+cd frontend
+npm install
+npm run dev
 ```
 
-### 3. 서버 실행
+### 🌐 시스템 접속
+
+- **Frontend UI**: http://localhost:3000
+- **Backend API**: http://localhost:8000  
+- **API 문서**: http://localhost:8000/docs
+- **헬스 체크**: http://localhost:8000/health
+
+### 🛑 시스템 중지
 
 ```bash
-# 백엔드 서버 시작
+./stop.sh
+```
+
+## 🔧 문제 해결
+
+### ⚠️ 자주 발생하는 문제들
+
+#### 1. Backend Import 오류
+```
+ImportError: attempted relative import with no known parent package
+```
+**해결**: 다음 명령으로 실행하세요
+```bash
 cd backend
-python main.py
-
-# 또는 uvicorn 직접 실행
-uvicorn main:app --host 0.0.0.0 --port 8025 --reload
+python -m uvicorn app.main:app --reload
 ```
 
-### 4. 프론트엔드 접속
+#### 2. Frontend TypeScript 설정 오류
+```
+tsconfig.node.json not found
+```
+**해결**: `frontend/tsconfig.node.json` 파일이 자동으로 생성됩니다
 
-브라우저에서 `http://localhost:8025/static/index.html` 접속
+#### 3. 포트 충돌
+```bash
+# 사용 중인 포트 확인
+lsof -i :3000  # Frontend
+lsof -i :8000  # Backend
 
-또는 루트 URL에서 API 정보 확인: `http://localhost:8025`
+# 프로세스 종료
+kill -9 <PID>
+```
+
+#### 4. 환경변수 누락
+```bash
+# .env 파일 확인 및 생성
+cd backend
+cp .env.example .env
+# 에디터로 .env 파일을 열어서 OPENAI_API_KEY 설정
+```
+
+### 📚 상세한 문제 해결 가이드
+
+문제가 지속되는 경우 [TROUBLESHOOTING.md](TROUBLESHOOTING.md) 파일을 참조하세요.
+
+## 🎯 사용 예시
+
+### 입력
+```
+"온라인 할일 관리 앱을 만들어줘. 할일 추가, 완료 체크, 삭제 기능이 필요해."
+```
+
+### 출력 (5분 이내 자동 생성)
+```
+workspace/generated_projects/todo-app-20241201/
+├── frontend/                 # React 앱
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   └── services/
+│   ├── package.json
+│   └── README.md
+├── backend/                  # FastAPI 앱
+│   ├── app/
+│   │   ├── models/
+│   │   ├── routers/
+│   │   └── main.py
+│   ├── requirements.txt
+│   └── README.md
+├── docker-compose.yml        # 배포 설정
+├── .env.example             # 환경변수
+├── run.sh                   # 실행 스크립트
+└── README.md               # 프로젝트 문서
+```
+
+### 자동 실행
+```bash
+cd workspace/generated_projects/todo-app-20241201
+./run.sh
+
+# → Frontend: http://localhost:3025
+# → Backend: http://localhost:8025
+# → 즉시 사용 가능한 웹앱!
+```
+
+## 🛠️ 주요 기능
+
+### ✅ 완전 자동화된 웹서비스 생성
+- 한 줄 입력으로 완전한 Full-Stack 웹 애플리케이션 생성
+- Frontend-Backend 완전 연동
+- 즉시 실행 가능한 상태로 생성
+
+### ✅ 실시간 진행상황 모니터링
+- WebSocket 기반 실시간 워크플로 추적
+- 각 에이전트의 작업 상태 시각화
+- 오류 발생 시 명확한 피드백
+
+### ✅ 프로젝트 관리 기능
+- 생성된 프로젝트 목록 및 상세 정보
+- 프로젝트 시작/중지 제어
+- 파일 구조 탐색 및 로그 조회
+
+### ✅ MCP 기반 파일 시스템 접근
+- 실제 로컬 파일 시스템에 프로젝트 생성
+- Git 저장소 자동 초기화
+- Docker 환경 설정 자동 생성
 
 ## 📁 프로젝트 구조
 
 ```
 local_ai_agent/
-├── backend/                 # FastAPI 백엔드
-│   ├── config/             # 설정 관리
-│   ├── core/               # 핵심 모듈 (GPT, 캐시, 토큰)
-│   ├── services/           # 비즈니스 로직
-│   ├── api/                # API 엔드포인트
-│   ├── models/             # 데이터 모델
-│   ├── utils/              # 유틸리티
-│   └── requirements.txt    # Python 의존성
-├── frontend/               # Vanilla HTML/CSS/JS 프론트엔드
-└── data/                   # 데이터 디렉토리
-    ├── cache/              # 캐시 저장소
-    └── logs/               # 로그 파일
+├── backend/                  # FastAPI 백엔드
+│   ├── app/
+│   │   ├── agents/          # AI 에이전트들
+│   │   ├── api/             # API 라우터
+│   │   ├── core/            # 핵심 설정
+│   │   ├── mcp/             # MCP 클라이언트
+│   │   ├── models/          # 데이터 모델
+│   │   └── workflow_manager.py
+│   ├── requirements.txt
+│   ├── main.py
+│   ├── run.py              # 개선된 실행 스크립트
+│   └── dev.sh              # 개발용 실행 스크립트
+├── frontend/                 # React 프론트엔드
+│   ├── src/
+│   │   ├── components/      # UI 컴포넌트
+│   │   ├── pages/           # 페이지 컴포넌트
+│   │   ├── services/        # API 서비스
+│   │   └── types/           # TypeScript 타입
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── tsconfig.node.json   # 새로 추가됨
+│   ├── vite.config.ts       # 개선됨
+│   ├── run.js              # Node.js 실행 스크립트
+│   └── dev.sh              # 개발용 실행 스크립트
+├── workspace/               # 생성된 프로젝트들
+│   └── generated_projects/
+├── logs/                    # 로그 파일들
+├── docker-compose.yml       # Docker 설정
+├── start.sh                # 전체 시스템 시작 (개선됨)
+├── stop.sh                 # 중지 스크립트
+├── TROUBLESHOOTING.md      # 문제 해결 가이드
+└── README.md
 ```
 
-## 🔧 Phase 2 구현 기능
+## 🔧 개발 가이드
 
-### ✅ Web Search Tool
-- DuckDuckGo API 웹 검색
-- 웹 페이지 내용 추출 및 파싱
-- URL 유효성 검증
-- RSS/Atom 피드 파싱
-- 뉴스 및 이미지 검색 지원
-- 검색 캐싱 및 최적화
-- 보안 도메인 필터링
+### 환경변수 설정
 
-### ✅ File System Tool
-- 파일 읽기/쓰기 작업
-- 디렉토리 생성 및 조회
-- 파일 복사/이동/삭제
-- 파일 검색 및 정보 조회
-- 파일 모니터링 (watchdog)
-- 백업/복원 기능
-- 해시 계산 및 권한 관리
+`backend/.env` 파일에서 다음 변수들을 설정하세요:
 
-### ✅ Agent 서비스
-- Function Calling 지원
-- 도구 실행 관리
-- 세션 및 컨텍스트 관리
-- 도구 체이닝
-- 통계 및 모니터링
+```env
+# OpenAI API 설정
+OPENAI_API_KEY=your_openai_api_key_here
 
-### ✅ 보안 기능
-- 안전 모드 (safe_mode)
-- 허용 경로 제한
-- 파일 확장자 검증
-- 파일 크기 제한
-- 디렉토리 탐색 공격 방지
+# 환경 설정
+ENVIRONMENT=development
+DEBUG=true
 
-## 🔧 Phase 1 구현 기능
+# 데이터베이스
+DATABASE_URL=sqlite:///./app.db
 
-### ✅ GPT API 연동
-- OpenAI API 키 보안 관리
-- tiktoken 기반 토큰 계산
-- aiohttp 비동기 호출
-- 재시도 로직 및 에러 핸들링
+# 작업공간
+WORKSPACE_DIR=../workspace
 
-### ✅ 캐싱 시스템
-- diskcache 기반 응답 캐시
-- 설정 가능한 TTL
-- 캐시 통계 및 관리
+# CORS 설정
+CORS_ORIGINS=["http://localhost:3000"]
+```
 
-### ✅ 웹 인터페이스
-- 실시간 채팅 UI (Vanilla JavaScript)
-- 스트리밍 응답 지원
-- 시스템 모니터링 대시보드
-- 설정 관리 (Temperature, Max Tokens 등)
-- 토큰 카운팅 실시간 표시
+### Docker로 실행
 
-### ✅ API 엔드포인트
-- `/api/chat/completion` - 채팅 완료
-- `/api/chat/stream` - 스트리밍 채팅
-- `/api/chat/conversation` - 대화 관리
-- `/api/system/health` - 시스템 상태
-- `/api/system/cache/clear` - 캐시 관리
-- `/api/agent/tools` - 도구 목록 조회
-- `/api/agent/execute` - 도구 실행
-- `/api/agent/chat` - AI 에이전트 대화 (도구 사용 가능)
-- `/api/agent/file` - 파일 작업 단순화 인터페이스
-- `/api/agent/search` - 웹 검색 단순화 인터페이스
+```bash
+# Docker Compose로 전체 시스템 실행
+docker-compose up -d
 
-## 🎛️ 설정 옵션
+# 로그 확인
+docker-compose logs -f
+```
 
-### OpenAI 설정
-- `OPENAI_MODEL`: 사용할 GPT 모델
-- `OPENAI_MAX_TOKENS`: 최대 토큰 수
-- `OPENAI_TEMPERATURE`: 창의성 수준
+### 개별 서비스 개발 모드 실행
 
-### 캐시 설정
-- `CACHE_TYPE`: 캐시 유형 (disk)
-- `CACHE_TTL`: 캐시 유지 시간
-- `CACHE_MAX_SIZE`: 최대 캐시 크기
+**Backend 개발 서버**
+```bash
+cd backend
+./dev.sh
+# 또는
+python run.py
+```
 
-### API 설정
-- `API_HOST`: 서버 호스트
-- `API_PORT`: 서버 포트 (기본값: 8025)
-- `MAX_REQUESTS_PER_MINUTE`: 분당 최대 요청 수
-
-## 🔮 향후 개발 계획
-
-### Phase 3: 시스템 통합 및 추가 도구
-- File System Tool - 파일 시스템 도구 ✅
-- Web Search Tool - 웹 검색 도구 ✅
-- Calculator Tool - 수학 계산 도구 📋
-- System Command Tool - 시스템 명령 실행 📋
-- Database Tool - 데이터베이스 연동 📋
-- Scheduler Tool - 작업 스케줄링 📋
-
-### Phase 4: 고급 기능
-- 스마트 캐싱 (임베딩 기반 유사도 검색)
-- 요청 최적화 및 배칭
-- 오프라인 모드 (로컬 캐시 기반)
-- 음성 인터페이스 (Web Speech API)
-
-## 🔍 API 문서
-
-서버 실행 후 다음 URL에서 API 문서 확인:
-- Swagger UI: `http://localhost:8025/docs`
-- ReDoc: `http://localhost:8025/redoc`
-
-## 🛠️ 개발 가이드
-
-### 새로운 서비스 추가
-1. `backend/services/`에 서비스 클래스 생성
-2. `backend/api/`에 API 라우터 생성
-3. `backend/main.py`에 라우터 등록
-
-### 새로운 모델 추가
-1. `backend/models/`에 Pydantic 모델 정의
-2. 서비스에서 모델 사용
-
-### 캐시 전략 변경
-1. `backend/core/cache_manager.py` 수정
+**Frontend 개발 서버**
+```bash
+cd frontend
+./dev.sh
+# 또는  
+node run.js
+# 또는
+npm run dev
+```
 
 ## 🧪 테스트
 
+### API 테스트
 ```bash
-# API 테스트
-curl -X POST "http://localhost:8025/api/chat/completion" \
+# 헬스 체크
+curl http://localhost:8000/health
+
+# API 상태 확인
+curl http://localhost:8000/api/v1/status
+
+# 프로젝트 목록
+curl http://localhost:8000/api/v1/projects/
+
+# 워크플로 생성
+curl -X POST http://localhost:8000/api/v1/workflows/ \
   -H "Content-Type: application/json" \
-  -d '{"messages": [{"role": "user", "content": "Hello"}]}'
+  -d '{"user_input": "간단한 블로그 만들어줘", "project_name": "my-blog"}'
 ```
 
-## 📊 모니터링
-
-### 로그 확인
+### 서비스 연결 테스트
 ```bash
-tail -f data/logs/app.log
+# Frontend에서 Backend API 연결 확인
+curl http://localhost:3000/api/health
+```
+
+## 📊 시스템 모니터링
+
+### 실시간 로그 확인
+```bash
+# 전체 시스템 로그 (start.sh로 실행 시)
+tail -f logs/backend.log
+tail -f logs/frontend.log
+
+# 개별 실행 시 터미널에서 직접 확인
 ```
 
 ### 시스템 상태 확인
 ```bash
-curl http://localhost:8025/api/system/health
+# 프로세스 확인
+ps aux | grep uvicorn  # Backend
+ps aux | grep vite     # Frontend
+
+# 포트 사용 확인
+lsof -i :8000  # Backend
+lsof -i :3000  # Frontend
+
+# 디스크 사용량 확인
+du -sh workspace/generated_projects/
 ```
 
-### 캐시 통계 확인
-```bash
-curl http://localhost:8025/api/system/cache/stats
-```
+## 🎊 성공 지표
+
+### 기능적 지표
+- ✅ 5분 이내 완전한 웹서비스 생성
+- ✅ 생성된 프로젝트 즉시 실행 가능
+- ✅ Frontend-Backend 완전 연동
+
+### 기술적 지표
+- ✅ MCP를 통한 실제 파일 시스템 접근
+- ✅ 환경변수 기반 설정 관리
+- ✅ Docker 기반 원클릭 배포
+- ✅ 안정적인 import 구조 및 모듈 실행
+
+### 사용자 경험 지표
+- ✅ 비개발자도 웹서비스 생성 가능
+- ✅ 실시간 진행상황 시각화
+- ✅ 명확한 오류 메시지 및 복구 방안
+- ✅ 다양한 실행 방법 제공 (자동/수동/개발)
+
+## 🔄 업데이트 및 개선사항
+
+### v1.1.0 업데이트 (현재)
+- ✅ **Backend import 문제 해결**: 상대 import를 절대 import로 변경
+- ✅ **Frontend TypeScript 설정 개선**: `tsconfig.node.json` 추가
+- ✅ **다양한 실행 방법 제공**: 자동/개발/수동 실행 스크립트
+- ✅ **개선된 Vite 설정**: 더 안정적인 개발 서버 설정
+- ✅ **포괄적인 문제 해결 가이드**: `TROUBLESHOOTING.md` 추가
+- ✅ **실행 권한 자동 설정**: 스크립트 파일들의 실행 권한 관리
+- ✅ **로그 시스템 개선**: 구조화된 로깅 및 모니터링
 
 ## 🤝 기여 가이드
 
-1. 이슈 생성 및 논의
-2. 피처 브랜치 생성
-3. 코드 작성 및 테스트
-4. Pull Request 생성
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## 📄 라이선스
-
-MIT License - 자세한 내용은 LICENSE 파일 참조
-
-## 🆘 문제 해결
-
-### 일반적인 문제
-
-1. **OpenAI API 키 오류**
-   - `backend/.env` 파일의 API 키 확인
-   - API 키 권한 및 크레딧 확인
-
-2. **캐시 오류**
-   - `data/cache` 디렉토리 권한 확인
-   - 디스크 공간 확인
-
-3. **포트 충돌**
-   - `backend/.env`에서 `API_PORT` 변경
-   - 다른 프로세스의 포트 사용 확인
-
-### 로그 확인
+### 개발 환경 설정
 ```bash
-# 실시간 로그 모니터링
-tail -f data/logs/app.log
+# 개발용 브랜치 생성
+git checkout -b feature/new-feature
 
-# 오류 로그만 확인
-grep "ERROR" data/logs/app.log
+# 의존성 설치 및 개발 서버 실행
+./start.sh
+
+# 변경사항 테스트
+curl http://localhost:8000/health
 ```
 
-## 📞 지원
+## 📝 라이선스
 
-- 이슈 트래커: GitHub Issues
-- 문서: `/docs` 엔드포인트
-- 시스템 상태: `/api/system/health`
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 지원 및 문제 해결
+
+### 빠른 해결 체크리스트
+
+1. **시스템 요구사항 확인**
+   - Python 3.8+ 설치됨
+   - Node.js 16+ 설치됨
+   - 충분한 디스크 공간 (최소 1GB)
+
+2. **환경변수 설정 확인**
+   - `backend/.env` 파일 존재
+   - `OPENAI_API_KEY` 설정됨
+
+3. **포트 충돌 확인**
+   - 3000번, 8000번 포트 사용 가능
+
+4. **권한 문제 확인**
+   - 스크립트 파일들이 실행 가능
+   - 워크스페이스 디렉토리 쓰기 권한
+
+### 문제 보고
+
+문제가 발생하거나 질문이 있으시면:
+
+1. **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** 먼저 확인
+2. **로그 파일** 확인 (`logs/` 디렉토리)
+3. **[Issues](https://github.com/your-repo/issues)**에 다음 정보와 함께 등록:
+   - 운영체제 및 버전
+   - Python, Node.js 버전
+   - 오류 메시지 및 로그
+   - 재현 방법
+
+## 📞 연락처
+
+**개발팀**: AI Agent Development Team
+**이메일**: support@ai-agent-system.com
+**문서**: [GitHub Wiki](https://github.com/your-repo/wiki)
 
 ---
 
-🚀 **Local AI Agent로 AI 기반 자동화를 시작하세요!**
+**Made with ❤️ by AI Agent Team**
+
+*"한 줄의 아이디어를 완전한 웹서비스로"*

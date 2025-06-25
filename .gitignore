@@ -1,40 +1,27 @@
-# Python
+# Dependencies
+node_modules/
+backend/venv/
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
+*.pyc
+*.pyo
+*.pyd
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Virtual Environment
-venv/
-env/
-ENV/
-env.bak/
-venv.bak/
-
-# Environment Variables
+# Environment variables
 .env
 .env.local
-.env.production
-.env.staging
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+
+# Build outputs
+build/
+dist/
+*.egg-info/
+frontend/dist/
 
 # IDE
 .vscode/
@@ -43,87 +30,57 @@ venv.bak/
 *.swo
 *~
 
+# OS
+.DS_Store
+Thumbs.db
+
 # Logs
 *.log
-data/logs/*.log
 logs/
-
-# Cache
-data/cache/*
-!data/cache/.gitkeep
-*.cache
-.cache/
+backend/app.log
 
 # Database
 *.db
 *.sqlite
 *.sqlite3
 
-# OS
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
 # Temporary files
-*.tmp
-*.temp
+tmp/
+temp/
 .tmp/
-.temp/
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-.nox/
+# Process IDs
+*.pid
+.backend.pid
+.frontend.pid
 
-# Deleted files directory
-deleted_files/
-
-# Docker (removed from project)
+# Docker
 .dockerignore
-Dockerfile
-docker-compose.yml
-docker-compose.*.yml
 
-# Node.js (if using frontend build tools)
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Generated projects (workspace)
+workspace/generated_projects/*
+!workspace/generated_projects/.gitkeep
 
-# Backup files
-*.bak
-*.backup
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
 
-# Config overrides
-config.local.py
-settings.local.py
-
-# Redis dumps
-dump.rdb
-
-# Jupyter Notebooks
-.ipynb_checkpoints
+# Pytest
+.pytest_cache/
 
 # mypy
 .mypy_cache/
 .dmypy.json
 dmypy.json
 
-# Pyre
-.pyre/
+# Frontend specific
+frontend/.vite/
+frontend/node_modules/
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Backend specific
+backend/__pycache__/
+backend/app/__pycache__/
+backend/app/*/__pycache__/
+backend/app/*/*/__pycache__/
