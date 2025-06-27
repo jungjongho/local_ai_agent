@@ -1,4 +1,4 @@
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import json
 from .base import EnhancedBaseAgent
 
@@ -6,10 +6,11 @@ from .base import EnhancedBaseAgent
 class FrontendAgent(EnhancedBaseAgent):
     """Frontend 에이전트 - React 컴포넌트 및 페이지 코드 생성"""
     
-    def __init__(self):
+    def __init__(self, model: Optional[str] = None):
         super().__init__(
             name="frontend",
-            description="React + TypeScript + TailwindCSS 기반 프론트엔드 코드를 생성하는 에이전트"
+            description="React + TypeScript + TailwindCSS 기반 프론트엔드 코드를 생성하는 에이전트",
+            model=model
         )
     
     def get_system_prompt(self) -> str:

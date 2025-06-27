@@ -1,7 +1,24 @@
 // Workflow 관련 타입들
+export interface ModelInfo {
+  id: string;
+  name: string;
+  description: string;
+  context_length: number;
+  pricing: {
+    input: string;
+    output: string;
+  };
+  capabilities: string[];
+  best_for: string[];
+  speed: string;
+  cost: string;
+  is_default: boolean;
+}
+
 export interface WorkflowCreate {
   user_input: string;
   project_name?: string;
+  model?: string;
 }
 
 export interface WorkflowResponse {

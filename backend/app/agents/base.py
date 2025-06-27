@@ -13,11 +13,11 @@ logger = logging.getLogger(__name__)
 class BaseAgent(ABC):
     """모든 AI 에이전트의 기본 클래스"""
     
-    def __init__(self, name: str, description: str):
+    def __init__(self, name: str, description: str, model: Optional[str] = None):
         self.name = name
         self.description = description
         self.client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
-        self.model = "gpt-4"
+        self.model = model or settings.DEFAULT_GPT_MODEL
         self.temperature = 0.7
         self.max_tokens = 2000
         
@@ -34,6 +34,17 @@ class BaseAgent(ABC):
     async def call_gpt(self, messages: list, **kwargs) -> Dict[str, Any]:
         """GPT API 호출"""
         try:
+            # API 키 확인
+            if not settings.OPENAI_API_KEY:
+                logger.error("OpenAI API 키가 설정되지 않았습니다.")
+                return {
+                    "success": False,
+                    "error": "OpenAI API 키가 설정되지 않았습니다. .env 파일을 확인하세요.",
+                    "content": None,
+                    "tokens_used": 0,
+                    "duration": 0
+                }
+            
             # 기본 파라미터 설정
             params = {
                 "model": self.model,
@@ -42,11 +53,12 @@ class BaseAgent(ABC):
                 "max_tokens": kwargs.get("max_tokens", self.max_tokens),
             }
             
-            # JSON 모드 요청시
-            if kwargs.get("response_format") == "json":
-                params["response_format"] = {"type": "json_object"}
+            # JSON 모드 요청시 - 현재 비활성화 (GPT-4 모델 호환성 문제)
+            # if kwargs.get("response_format") == "json":
+            #     params["response_format"] = {"type": "json_object"}
             
             start_time = datetime.now()
+            logger.info(f"GPT API 호출 시작: model={self.model}, messages_count={len(messages)}")
             
             response = self.client.chat.completions.create(**params)
             
@@ -62,8 +74,12 @@ class BaseAgent(ABC):
                     parsed_content = json.loads(content)
                 else:
                     parsed_content = content
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as je:
+                logger.error(f"JSON 파싱 실패: {je}")
+                logger.error(f"응답 내용: {content[:500]}...")  # 처음 500자만 로깅
                 parsed_content = content
+            
+            logger.info(f"GPT API 호출 성공: duration={duration:.2f}s, tokens={response.usage.total_tokens}")
             
             return {
                 "success": True,
@@ -236,8 +252,8 @@ class CacheMixin:
 class EnhancedBaseAgent(BaseAgent, RetryMixin, ValidationMixin, CacheMixin):
     """향상된 기능을 포함한 기본 에이전트 클래스"""
     
-    def __init__(self, name: str, description: str, enable_cache: bool = True):
-        BaseAgent.__init__(self, name, description)
+    def __init__(self, name: str, description: str, enable_cache: bool = True, model: Optional[str] = None):
+        BaseAgent.__init__(self, name, description, model)
         if enable_cache:
             CacheMixin.__init__(self)
         

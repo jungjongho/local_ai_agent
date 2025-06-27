@@ -1,4 +1,4 @@
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import json
 from .base import EnhancedBaseAgent
 
@@ -6,10 +6,11 @@ from .base import EnhancedBaseAgent
 class UIUXAgent(EnhancedBaseAgent):
     """UI/UX 에이전트 - 컴포넌트 설계 및 디자인 시스템 구축"""
     
-    def __init__(self):
+    def __init__(self, model: Optional[str] = None):
         super().__init__(
             name="uiux",
-            description="UI/UX 설계 및 컴포넌트 디자인을 담당하는 에이전트"
+            description="UI/UX 설계 및 컴포넌트 디자인을 담당하는 에이전트",
+            model=model
         )
     
     def get_system_prompt(self) -> str:
@@ -142,12 +143,27 @@ class UIUXAgent(EnhancedBaseAgent):
         
         result = await self.call_gpt_with_enhancements(
             messages, 
-            response_format="json",
             max_tokens=1000
         )
         
         if result["success"]:
-            return result["content"]
+            # JSON 파싱 시도
+            content = result["content"]
+            try:
+                if isinstance(content, dict):
+                    return content
+                elif isinstance(content, str):
+                    import re
+                    json_match = re.search(r'\{.*\}', content, re.DOTALL)
+                    if json_match:
+                        import json
+                        return json.loads(json_match.group())
+                    else:
+                        return self._get_default_design_system()
+                else:
+                    return self._get_default_design_system()
+            except Exception:
+                return self._get_default_design_system()
         else:
             # 기본 디자인 시스템 반환
             return self._get_default_design_system()
@@ -197,12 +213,27 @@ class UIUXAgent(EnhancedBaseAgent):
         
         result = await self.call_gpt_with_enhancements(
             messages, 
-            response_format="json",
             max_tokens=2000
         )
         
         if result["success"]:
-            return result["content"]
+            # JSON 파싱 시도 (List 형태)
+            content = result["content"]
+            try:
+                if isinstance(content, list):
+                    return content
+                elif isinstance(content, str):
+                    import re
+                    json_match = re.search(r'\[.*\]', content, re.DOTALL)
+                    if json_match:
+                        import json
+                        return json.loads(json_match.group())
+                    else:
+                        return self._get_default_components()
+                else:
+                    return self._get_default_components()
+            except Exception:
+                return self._get_default_components()
         else:
             return self._get_default_components()
     
@@ -256,12 +287,27 @@ class UIUXAgent(EnhancedBaseAgent):
         
         result = await self.call_gpt_with_enhancements(
             messages, 
-            response_format="json",
             max_tokens=1500
         )
         
         if result["success"]:
-            return result["content"]
+            # JSON 파싱 시도 (List 형태)
+            content = result["content"]
+            try:
+                if isinstance(content, list):
+                    return content
+                elif isinstance(content, str):
+                    import re
+                    json_match = re.search(r'\[.*\]', content, re.DOTALL)
+                    if json_match:
+                        import json
+                        return json.loads(json_match.group())
+                    else:
+                        return self._get_default_layouts()
+                else:
+                    return self._get_default_layouts()
+            except Exception:
+                return self._get_default_layouts()
         else:
             return self._get_default_layouts()
     
@@ -308,12 +354,27 @@ class UIUXAgent(EnhancedBaseAgent):
         
         result = await self.call_gpt_with_enhancements(
             messages, 
-            response_format="json",
             max_tokens=1000
         )
         
         if result["success"]:
-            return result["content"]
+            # JSON 파싱 시도
+            content = result["content"]
+            try:
+                if isinstance(content, dict):
+                    return content
+                elif isinstance(content, str):
+                    import re
+                    json_match = re.search(r'\{.*\}', content, re.DOTALL)
+                    if json_match:
+                        import json
+                        return json.loads(json_match.group())
+                    else:
+                        return self._get_default_navigation()
+                else:
+                    return self._get_default_navigation()
+            except Exception:
+                return self._get_default_navigation()
         else:
             return self._get_default_navigation()
     

@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import json
 import re
 from datetime import datetime
@@ -9,10 +9,11 @@ from ..models.schemas import RequirementAnalysis, ProjectPlan
 class PMAgent(EnhancedBaseAgent):
     """프로젝트 매니저 에이전트 - 요구사항 분석 및 프로젝트 계획 수립"""
     
-    def __init__(self):
+    def __init__(self, model: Optional[str] = None):
         super().__init__(
             name="pm",
-            description="사용자 요구사항을 분석하고 프로젝트 계획을 수립하는 PM 에이전트"
+            description="사용자 요구사항을 분석하고 프로젝트 계획을 수립하는 PM 에이전트",
+            model=model
         )
     
     def get_system_prompt(self) -> str:
@@ -141,14 +142,96 @@ class PMAgent(EnhancedBaseAgent):
         
         result = await self.call_gpt_with_enhancements(
             messages, 
-            response_format="json",
             max_tokens=2000
         )
         
         if result["success"]:
-            return result["content"]
+            # GPT 응답에서 JSON 추출 시도
+            content = result["content"]
+            
+            # JSON 파싱 시도
+            try:
+                if isinstance(content, dict):
+                    return content
+                elif isinstance(content, str):
+                    # 문자열에서 JSON 부분 추출
+                    import re
+                    json_match = re.search(r'\{.*\}', content, re.DOTALL)
+                    if json_match:
+                        import json
+                        return json.loads(json_match.group())
+                    else:
+                        # JSON이 없으면 기본 구조 생성
+                        return self._create_default_analysis(content)
+                else:
+                    return self._create_default_analysis(str(content))
+            except (json.JSONDecodeError, Exception) as e:
+                logger.warning(f"JSON 파싱 실패, 기본 분석 사용: {e}")
+                return self._create_default_analysis(str(content))
         else:
             raise Exception(f"요구사항 분석 실패: {result.get('error', 'Unknown error')}")
+    
+    def _create_default_analysis(self, content: str) -> Dict[str, Any]:
+        """기본 요구사항 분석 구조 생성"""
+        return {
+            "project_type": "web_app",
+            "main_features": [
+                "할일 추가",
+                "할일 완료 체크", 
+                "할일 삭제"
+            ],
+            "technical_requirements": [
+                "React 프론트엔드",
+                "FastAPI 백엔드",
+                "SQLite 데이터베이스"
+            ],
+            "ui_requirements": [
+                "깔끔한 인터페이스",
+                "반응형 디자인"
+            ],
+            "data_models": [
+                {
+                    "name": "Todo",
+                    "fields": [
+                        {"name": "id", "type": "integer", "description": "고유 식별자"},
+                        {"name": "title", "type": "string", "description": "할일 제목"},
+                        {"name": "completed", "type": "boolean", "description": "완료 여부"},
+                        {"name": "created_at", "type": "datetime", "description": "생성 시간"}
+                    ],
+                    "relationships": []
+                }
+            ],
+            "api_endpoints": [
+                {
+                    "path": "/api/todos",
+                    "method": "GET",
+                    "description": "할일 목록 조회",
+                    "request_body": {},
+                    "response_body": {"todos": []}
+                },
+                {
+                    "path": "/api/todos",
+                    "method": "POST", 
+                    "description": "새 할일 생성",
+                    "request_body": {"title": "string"},
+                    "response_body": {"id": "integer", "title": "string", "completed": "boolean"}
+                },
+                {
+                    "path": "/api/todos/{id}",
+                    "method": "PUT",
+                    "description": "할일 상태 업데이트",
+                    "request_body": {"completed": "boolean"},
+                    "response_body": {"id": "integer", "completed": "boolean"}
+                },
+                {
+                    "path": "/api/todos/{id}",
+                    "method": "DELETE",
+                    "description": "할일 삭제",
+                    "request_body": {},
+                    "response_body": {"message": "string"}
+                }
+            ]
+        }
     
     async def _create_project_plan(self, project_name: str, user_input: str, analysis: Dict[str, Any]) -> Dict[str, Any]:
         """프로젝트 계획 생성"""

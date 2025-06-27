@@ -24,12 +24,14 @@ class WorkflowCreateRequest(BaseModel):
     """워크플로 생성 요청"""
     user_input: str = Field(..., description="사용자 입력 요구사항")
     project_name: Optional[str] = Field(None, description="프로젝트 이름 (자동 생성 가능)")
+    model: Optional[str] = Field(None, description="사용할 GPT 모델")
     
     class Config:
         json_schema_extra = {
             "example": {
                 "user_input": "온라인 할일 관리 앱을 만들어줘. 할일 추가, 완료 체크, 삭제 기능이 필요해.",
-                "project_name": "todo-app"
+                "project_name": "todo-app",
+                "model": "gpt-4o-mini"
             }
         }
 

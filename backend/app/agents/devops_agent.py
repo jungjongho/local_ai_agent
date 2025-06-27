@@ -1,4 +1,4 @@
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import json
 import os
 import subprocess
@@ -11,10 +11,11 @@ import asyncio
 class DevOpsAgent(EnhancedBaseAgent):
     """DevOps 에이전트 - Docker, 환경설정, 배포 스크립트 생성"""
     
-    def __init__(self):
+    def __init__(self, model: Optional[str] = None):
         super().__init__(
             name="devops",
-            description="Docker 설정, 환경변수, 배포 스크립트를 생성하는 DevOps 에이전트"
+            description="Docker 설정, 환경변수, 배포 스크립트를 생성하는 DevOps 에이전트",
+            model=model
         )
     
     def get_system_prompt(self) -> str:

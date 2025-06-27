@@ -1,4 +1,4 @@
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import json
 from .base import EnhancedBaseAgent
 
@@ -6,10 +6,11 @@ from .base import EnhancedBaseAgent
 class BackendAgent(EnhancedBaseAgent):
     """Backend 에이전트 - FastAPI + SQLAlchemy 기반 백엔드 코드 생성"""
     
-    def __init__(self):
+    def __init__(self, model: Optional[str] = None):
         super().__init__(
             name="backend",
-            description="FastAPI + SQLAlchemy + SQLite 기반 백엔드 API를 생성하는 에이전트"
+            description="FastAPI + SQLAlchemy + SQLite 기반 백엔드 API를 생성하는 에이전트",
+            model=model
         )
     
     def get_system_prompt(self) -> str:

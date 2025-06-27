@@ -4,6 +4,7 @@ import Card from '../components/Card';
 import Button from '../components/Button';
 import Alert from '../components/Alert';
 import WorkflowProgressDisplay from '../components/WorkflowProgress';
+import ModelSelector from '../components/ModelSelector';
 import { workflowApi } from '../services/api';
 import { WorkflowCreate, WorkflowProgress, WorkflowStatusDetails, WorkflowStatus } from '../types';
 
@@ -11,6 +12,7 @@ const WorkflowPage: React.FC = () => {
   const navigate = useNavigate();
   const [userInput, setUserInput] = useState('');
   const [projectName, setProjectName] = useState('');
+  const [selectedModel, setSelectedModel] = useState<string>('');
   const [isCreating, setIsCreating] = useState(false);
   const [currentWorkflow, setCurrentWorkflow] = useState<WorkflowStatusDetails | null>(null);
   const [progress, setProgress] = useState<WorkflowProgress | null>(null);
@@ -46,7 +48,8 @@ const WorkflowPage: React.FC = () => {
 
       const workflowData: WorkflowCreate = {
         user_input: userInput.trim(),
-        project_name: projectName.trim() || undefined
+        project_name: projectName.trim() || undefined,
+        model: selectedModel || undefined
       };
 
       console.log('Creating workflow with data:', workflowData);
@@ -158,7 +161,8 @@ const WorkflowPage: React.FC = () => {
     setProgress(null);
     setUserInput('');
     setProjectName('');
-    setError(null);
+    setSelectedModel('');
+      setError(null);
   };
 
   const exampleIdeas = [
@@ -206,7 +210,7 @@ const WorkflowPage: React.FC = () => {
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
                   placeholder="예: 할일 관리 앱을 만들어줘. 할일 추가, 완료 체크, 삭제 기능이 필요해."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-700 text-sm bg-white placeholder-gray-400"
                   rows={4}
                   required
                   disabled={isCreating}
@@ -226,13 +230,19 @@ const WorkflowPage: React.FC = () => {
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value)}
                   placeholder="예: todo-app (비워두면 자동 생성됩니다)"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 text-sm bg-white placeholder-gray-400"
                   disabled={isCreating}
                 />
                 <p className="mt-1 text-sm text-gray-500">
                   영문 소문자, 숫자, 하이픈(-)만 사용 가능합니다.
                 </p>
               </div>
+
+              <ModelSelector
+                selectedModel={selectedModel}
+                onModelChange={setSelectedModel}
+                className="mb-6"
+              />
 
               <div className="flex justify-end space-x-4">
                 <Button
@@ -241,6 +251,7 @@ const WorkflowPage: React.FC = () => {
                   onClick={() => {
                     setUserInput('');
                     setProjectName('');
+                    setSelectedModel('');
                   }}
                   disabled={isCreating}
                 >

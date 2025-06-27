@@ -1,17 +1,18 @@
 import axios from 'axios';
-import { 
-  WorkflowCreate, 
-  WorkflowResponse, 
-  WorkflowStatusDetails, 
-  WorkflowStatistics,
-  Project,
-  ProjectInfo,
-  WorkspaceInfo,
-  SystemRequirements,
+import {
+WorkflowCreate,
+WorkflowResponse,
+WorkflowStatusDetails,
+WorkflowStatistics,
+ModelInfo,
+Project,
+ProjectInfo,
+WorkspaceInfo,
+SystemRequirements,
   FileContent
 } from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8025';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -138,6 +139,24 @@ export const projectsApi = {
     return api.get(`/api/v1/projects/${projectId}/files`, {
       params: { file_path: filePath }
     });
+  }
+};
+
+// Models API
+export const modelsApi = {
+  // 사용 가능한 모델 목록 조회
+  getAvailableModels: async (): Promise<ModelInfo[]> => {
+    return api.get('/api/v1/models/');
+  },
+
+  // 특정 모델 정보 조회
+  getModelInfo: async (modelId: string): Promise<ModelInfo> => {
+    return api.get(`/api/v1/models/${modelId}`);
+  },
+
+  // 현재 기본 모델 조회
+  getCurrentModel: async (): Promise<ModelInfo> => {
+    return api.get('/api/v1/models/current/default');
   }
 };
 

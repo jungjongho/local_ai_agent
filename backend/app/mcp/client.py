@@ -376,7 +376,7 @@ class MCPEnvironmentClient:
             dev_env = {
                 "NODE_ENV": "development",
                 "DEBUG": "true",
-                "API_URL": "http://localhost:8025",
+                "API_URL": "http://localhost:8000",
                 "DATABASE_URL": "sqlite:///./dev.db"
             }
             
@@ -516,8 +516,8 @@ class MCPManager:
                     return {
                     "success": True,
                     "message": "서비스가 성공적으로 시작되었습니다.",
-                    "frontend_url": "http://localhost:3025",
-                    "backend_url": "http://localhost:8025"
+                    "frontend_url": "http://localhost:3000",
+                    "backend_url": "http://localhost:8000"
                     }
             else:
                 # 직접 서비스 시작 (개발 모드)
@@ -559,8 +559,8 @@ class MCPManager:
             return {
                 "success": True,
                 "message": "개발 서버가 시작되었습니다.",
-                "frontend_url": "http://localhost:3025",
-                "backend_url": "http://localhost:8025"
+                "frontend_url": "http://localhost:3000",
+                "backend_url": "http://localhost:8000"
             }
             
         except Exception as e:
@@ -851,21 +851,21 @@ class MCPProjectClient:
             # 포트 확인으로 서비스 실행 여부 판단
             import socket
             
-            # Frontend 포트 (3025) 확인
+            # Frontend 포트 (3000) 확인
             try:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.settimeout(1)
-                result = sock.connect_ex(('localhost', 3025))
+                result = sock.connect_ex(('localhost', 3000))
                 status["frontend_running"] = (result == 0)
                 sock.close()
             except Exception:
                 pass
             
-            # Backend 포트 (8025) 확인
+            # Backend 포트 (8000) 확인
             try:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.settimeout(1)
-                result = sock.connect_ex(('localhost', 8025))
+                result = sock.connect_ex(('localhost', 8000))
                 status["backend_running"] = (result == 0)
                 sock.close()
             except Exception:
@@ -912,8 +912,8 @@ class MCPProjectClient:
         try:
             import psutil
             
-            # 포트 3025, 8025에서 실행 중인 프로세스 찾아서 종료
-            for port in [3025, 8025]:
+            # 포트 3000, 8000에서 실행 중인 프로세스 찾아서 종료
+            for port in [3000, 8000]:
                 try:
                     for proc in psutil.process_iter(['pid', 'name', 'connections']):
                         try:
@@ -930,8 +930,8 @@ class MCPProjectClient:
             # psutil이 없으면 subprocess로 대체
             try:
                 # kill processes on ports
-                subprocess.run(["lsof", "-ti:3025"], capture_output=True)
-                subprocess.run(["lsof", "-ti:8025"], capture_output=True)
+                subprocess.run(["lsof", "-ti:3000"], capture_output=True)
+                subprocess.run(["lsof", "-ti:8000"], capture_output=True)
             except Exception:
                 pass
         except Exception as e:

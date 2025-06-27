@@ -9,6 +9,7 @@ from .core.config import settings
 from .core.logging import setup_logging
 from .api.workflows import router as workflows_router
 from .api.projects import router as projects_router
+from .api.models import router as models_router
 from .models.database import init_db
 
 # 로깅 설정
@@ -62,6 +63,7 @@ app.add_middleware(
 # API 라우터 등록
 app.include_router(workflows_router)
 app.include_router(projects_router)
+app.include_router(models_router)
 
 
 @app.get("/")
@@ -164,7 +166,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
-        port=8025,
+        port=8000,
         reload=settings.ENVIRONMENT == "development",
         log_level="info"
     )

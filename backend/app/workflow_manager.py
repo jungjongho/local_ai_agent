@@ -50,13 +50,8 @@ class WorkflowManager:
     """멀티 AI 에이전트 워크플로 관리자"""
     
     def __init__(self):
-        self.agents = {
-            "pm": PMAgent(),
-            "uiux": UIUXAgent(),
-            "frontend": FrontendAgent(),
-            "backend": BackendAgent(),
-            "devops": DevOpsAgent()
-        }
+        # 대기 중인 기본 모델 - 모델은 워크플로 생성 시 지정
+        self.agents_cache = {}
         import os
         workspace_path = os.path.join(os.getcwd(), "workspace", "generated_projects")
         self.mcp_manager = MCPManager(workspace_path)
@@ -74,17 +69,41 @@ class WorkflowManager:
             WorkflowStage.COMPLETED: 100,
             WorkflowStage.FAILED: 0
         }
+    def _get_agents_for_model(self, model: str) -> Dict[str, Any]:
+        """지정된 모델로 Agent들을 생성하거나 캐시에서 가져오기"""
+        if model not in self.agents_cache:
+            self.agents_cache[model] = {
+                "pm": PMAgent(model=model),
+                "uiux": UIUXAgent(model=model),
+                "frontend": FrontendAgent(model=model),
+                "backend": BackendAgent(model=model),
+                "devops": DevOpsAgent(model=model)
+            }
+            logger.info(f"모델 {model}에 대한 Agent들을 생성했습니다.")
+        
+        return self.agents_cache[model]
     
     async def start_workflow(self, workflow_data: WorkflowCreateRequest) -> str:
         """새로운 워크플로 시작"""
         try:
             workflow_id = str(uuid.uuid4())
             
+            # 모델 선택 (기본값: settings.DEFAULT_GPT_MODEL)
+            selected_model = workflow_data.model or settings.DEFAULT_GPT_MODEL
+            
+            # 선택된 모델이 사용 가능한지 확인
+            if selected_model not in settings.AVAILABLE_MODELS:
+                logger.warning(f"지원하지 않는 모델: {selected_model}, 기본 모델 사용: {settings.DEFAULT_GPT_MODEL}")
+                selected_model = settings.DEFAULT_GPT_MODEL
+            
+            logger.info(f"워크플로 {workflow_id}에서 {selected_model} 모델 사용")
+            
             # 워크플로 정보 초기화
             workflow_info = {
                 "id": workflow_id,
                 "user_input": workflow_data.user_input,
                 "project_name": workflow_data.project_name,
+                "model": selected_model,
                 "status": WorkflowStatus.RUNNING,
                 "created_at": datetime.now(),
                 "current_stage": WorkflowStage.PLANNING,
@@ -109,6 +128,7 @@ class WorkflowManager:
         """워크플로 실행"""
         try:
             workflow_info = self.active_workflows[workflow_id]
+            logger.info(f"워크플로 실행 시작: {workflow_id}")
             
             # 단계별 실행
             stage_data = {
@@ -117,9 +137,21 @@ class WorkflowManager:
                 "project_name": workflow_info["project_name"]
             }
             
+            logger.info(f"PM Agent 실행 준비: {stage_data}")
+            
+            # 선택된 모델에 대한 Agent들 가져오기
+            agents = self._get_agents_for_model(workflow_info["model"])
+            
             # 1. Planning (PM Agent)
             await self._update_progress(workflow_id, WorkflowStage.PLANNING, "프로젝트 계획 수립 중...")
-            pm_result = await self.agents["pm"].safe_execute(stage_data)
+            
+            try:
+                pm_result = await agents["pm"].safe_execute(stage_data)
+                logger.info(f"PM Agent 실행 결과: {pm_result.get('success', False)}")
+            except Exception as e:
+                logger.error(f"PM Agent 실행 중 예외 발생: {e}")
+                await self._handle_workflow_error(workflow_id, "PM Agent 실행 실패", str(e))
+                return
             
             if not pm_result["success"]:
                 await self._handle_workflow_error(workflow_id, "PM Agent 실행 실패", pm_result.get("error_message"))
@@ -130,7 +162,14 @@ class WorkflowManager:
             
             # 2. UI/UX Design
             await self._update_progress(workflow_id, WorkflowStage.UIUX_DESIGN, "UI/UX 설계 중...")
-            uiux_result = await self.agents["uiux"].safe_execute(stage_data)
+            
+            try:
+                uiux_result = await agents["uiux"].safe_execute(stage_data)
+                logger.info(f"UI/UX Agent 실행 결과: {uiux_result.get('success', False)}")
+            except Exception as e:
+                logger.error(f"UI/UX Agent 실행 중 예외 발생: {e}")
+                await self._handle_workflow_error(workflow_id, "UI/UX Agent 실행 실패", str(e))
+                return
             
             if not uiux_result["success"]:
                 await self._handle_workflow_error(workflow_id, "UI/UX Agent 실행 실패", uiux_result.get("error_message"))
@@ -141,7 +180,14 @@ class WorkflowManager:
             
             # 3. Frontend Development
             await self._update_progress(workflow_id, WorkflowStage.FRONTEND_DEV, "프론트엔드 코드 생성 중...")
-            frontend_result = await self.agents["frontend"].safe_execute(stage_data)
+            
+            try:
+                frontend_result = await agents["frontend"].safe_execute(stage_data)
+                logger.info(f"Frontend Agent 실행 결과: {frontend_result.get('success', False)}")
+            except Exception as e:
+                logger.error(f"Frontend Agent 실행 중 예외 발생: {e}")
+                await self._handle_workflow_error(workflow_id, "Frontend Agent 실행 실패", str(e))
+                return
             
             if not frontend_result["success"]:
                 await self._handle_workflow_error(workflow_id, "Frontend Agent 실행 실패", frontend_result.get("error_message"))
@@ -152,7 +198,14 @@ class WorkflowManager:
             
             # 4. Backend Development
             await self._update_progress(workflow_id, WorkflowStage.BACKEND_DEV, "백엔드 코드 생성 중...")
-            backend_result = await self.agents["backend"].safe_execute(stage_data)
+            
+            try:
+                backend_result = await agents["backend"].safe_execute(stage_data)
+                logger.info(f"Backend Agent 실행 결과: {backend_result.get('success', False)}")
+            except Exception as e:
+                logger.error(f"Backend Agent 실행 중 예외 발생: {e}")
+                await self._handle_workflow_error(workflow_id, "Backend Agent 실행 실패", str(e))
+                return
             
             if not backend_result["success"]:
                 await self._handle_workflow_error(workflow_id, "Backend Agent 실행 실패", backend_result.get("error_message"))
@@ -163,7 +216,14 @@ class WorkflowManager:
             
             # 5. DevOps Setup
             await self._update_progress(workflow_id, WorkflowStage.DEVOPS_SETUP, "DevOps 설정 생성 중...")
-            devops_result = await self.agents["devops"].safe_execute(stage_data)
+            
+            try:
+                devops_result = await agents["devops"].safe_execute(stage_data)
+                logger.info(f"DevOps Agent 실행 결과: {devops_result.get('success', False)}")
+            except Exception as e:
+                logger.error(f"DevOps Agent 실행 중 예외 발생: {e}")
+                await self._handle_workflow_error(workflow_id, "DevOps Agent 실행 실패", str(e))
+                return
             
             if not devops_result["success"]:
                 await self._handle_workflow_error(workflow_id, "DevOps Agent 실행 실패", devops_result.get("error_message"))
@@ -173,7 +233,14 @@ class WorkflowManager:
             
             # 6. File Generation (MCP를 통한 실제 파일 생성)
             await self._update_progress(workflow_id, WorkflowStage.FILE_GENERATION, "프로젝트 파일 생성 중...")
-            file_generation_result = await self._generate_project_files(workflow_id, workflow_info["stage_results"])
+            
+            try:
+                file_generation_result = await self._generate_project_files(workflow_id, workflow_info["stage_results"])
+                logger.info(f"파일 생성 결과: {file_generation_result.get('success', False)}")
+            except Exception as e:
+                logger.error(f"파일 생성 중 예외 발생: {e}")
+                await self._handle_workflow_error(workflow_id, "파일 생성 실패", str(e))
+                return
             
             if not file_generation_result["success"]:
                 await self._handle_workflow_error(workflow_id, "파일 생성 실패", file_generation_result.get("error"))
@@ -183,7 +250,14 @@ class WorkflowManager:
             
             # 7. Project Deployment (선택적 자동 실행)
             await self._update_progress(workflow_id, WorkflowStage.PROJECT_DEPLOYMENT, "프로젝트 배포 준비 중...")
-            deployment_result = await self._prepare_deployment(workflow_id, workflow_info["stage_results"])
+            
+            try:
+                deployment_result = await self._prepare_deployment(workflow_id, workflow_info["stage_results"])
+                logger.info(f"배포 준비 결과: {deployment_result.get('success', False)}")
+            except Exception as e:
+                logger.error(f"배포 준비 중 예외 발생: {e}")
+                # 배포 준비는 실패해도 워크플로를 중단하지 않음
+                deployment_result = {"success": False, "error": str(e)}
             
             workflow_info["stage_results"]["deployment"] = deployment_result
             
@@ -195,7 +269,7 @@ class WorkflowManager:
             logger.info(f"워크플로 완료: {workflow_id}")
             
         except Exception as e:
-            logger.error(f"워크플로 실행 중 오류: {e}")
+            logger.error(f"워크플로 실행 중 치명적 오류: {e}")
             await self._handle_workflow_error(workflow_id, "워크플로 실행 오류", str(e))
     
     async def _update_progress(self, workflow_id: str, stage: WorkflowStage, message: str, 
@@ -446,7 +520,7 @@ class WorkflowManager:
             return {
                 "total_workflows": total_workflows,
                 "status_breakdown": status_counts,
-                "active_agents": list(self.agents.keys()),
+                "active_agents": ["pm", "uiux", "frontend", "backend", "devops"],
                 "average_completion_time": self._calculate_average_completion_time()
             }
             

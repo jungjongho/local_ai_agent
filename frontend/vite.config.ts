@@ -8,12 +8,12 @@ export default defineConfig({
   
   // 개발 서버 설정
   server: {
-    port: 3025,
+    port: 3000,
     host: true,
     strictPort: false, // 포트가 사용 중이면 다른 포트 사용
     proxy: {
       '/api': {
-        target: 'http://localhost:8025',
+        target: 'http://localhost:8000',
         changeOrigin: true,
         secure: false,
         configure: (proxy, _options) => {
